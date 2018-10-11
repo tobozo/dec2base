@@ -1,6 +1,6 @@
 #include <string>
 
-const char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
 char *reverseString(char *x) {
   uint8_t n = strlen(x), i;
@@ -16,7 +16,7 @@ char *reverseString(char *x) {
 
 char *dec2base(uint32_t num, uint8_t base, uint8_t padding = 4) {
   if (base < 2) base = 2;
-  if (base > 36) base = 36;
+  if (base > 64) base = 64;
   std::string rslt;
   uint32_t current = num;
   uint8_t remainder, ln = 0;
@@ -38,12 +38,31 @@ char *dec2base(uint32_t num, uint8_t base, uint8_t padding = 4) {
 
 void setup() {
   Serial.begin(115200);
+  Serial.print("Alphabet ");
+  Serial.print("(");
+  Serial.print(strlen(alphabet));
+  Serial.print(" chars) : ");
+  Serial.println( alphabet );
 }
 
 void loop() {
   uint8_t i;
-  uint32_t r = esp_random() % 1600000;
-  Serial.print(r); Serial.print(" in base 36: ");
-  Serial.println(dec2base(r, 36));
+  #if defined(ESP32)
+    // built-in true random
+    uint32_t r = esp_rand() % 1600000;
+    uint8_t b = random(strlen(alphabet));
+  #elif defined(ESP8266)
+    // use ESP8266 true random library?
+    uint32_t r = rand() % 1600000;
+    uint8_t b = random(strlen(alphabet));
+  #else
+    // arduino and so on
+    uint32_t r = rand() % 1600000;
+    uint8_t b = random(strlen(alphabet));
+  #endif
+  if (b < 2) b = 2;
+  if (b > 64) b = 64;
+  Serial.print(r); Serial.print(" in base "+String(b)+": ");
+  Serial.println(dec2base(r, b));
   delay(1000);
 }
